@@ -16,6 +16,7 @@ from utils.youtube_processor import process_youtube_url
 from utils.audio_buffer import AudioBuffer
 from utils.realtime_transcriber import transcribe_audio_buffer
 from utils.llm_analyzer import get_llm_analyzer
+from utils.intent_detector import get_intent_detector
 from sales_checklist import (
     detect_stage_from_text,
     check_checklist_item,
@@ -54,6 +55,7 @@ transcription_language: str = "id"  # Default: Bahasa Indonesia
 is_live_recording: bool = False  # Флаг живой записи
 use_llm_analysis: bool = os.getenv("USE_LLM_ANALYSIS", "true").lower() == "true"
 llm_analyzer = get_llm_analyzer()  # Initialize LLM analyzer
+intent_detector = get_intent_detector() # Initialize Intent Detector
 
 # Мок-диалог (пока ASR не подключён)
 mock_dialogue = [
@@ -304,6 +306,8 @@ async def websocket_ingest(websocket: WebSocket):
                                 # Analyze ONLY client speech
                                 client_text = " ".join(client_segments)
                                 if client_text:
+                                    print(f"\n   👤 CLIENT TEXT FOR ANALYSIS ({len(client_text)} chars):")
+                                    print(f"   '{client_text}'")
                                     print("🧠 Analyzing client sentiment with LLM...")
                                     last_client_insight = llm_analyzer.analyze_client_sentiment(
                                         client_text, 
@@ -532,8 +536,16 @@ async def websocket_ingest(websocket: WebSocket):
                     else:
                         print("⏳ Transcript empty, using cached data")
                     
+                    # ===== DETECT IN-CALL TRIGGERS =====
+                    assist_trigger = None
+                    if transcript and len(transcript) > 10:
+                        # Use recent transcript for trigger detection
+                        assist_trigger = intent_detector.detect_trigger(transcript, transcription_language)
+                        if assist_trigger:
+                            print(f"🎯 ASSIST TRIGGER: {assist_trigger.get('id')} - {assist_trigger.get('title')}")
+                    
                     # ===== ALWAYS SEND MESSAGE (even if transcript empty) =====
-                    print(f"📊 Sending update: hint={bool(last_hint)}, stage={current_stage}, checklist_items={len(checklist_progress)}")
+                    print(f"📊 Sending update: hint={bool(last_hint)}, stage={current_stage}, checklist_items={len(checklist_progress)}, trigger={bool(assist_trigger)}")
                     
                     # Отправляем через WebSocket всем клиентам
                     message_data = {
@@ -544,7 +556,8 @@ async def websocket_ingest(websocket: WebSocket):
                         "current_stage": current_stage,
                         "checklist_progress": checklist_progress,
                         "checklist_evidence": checklist_evidence,  # Add evidence for each item
-                        "transcript_preview": accumulated_transcript[-500:] if accumulated_transcript else ""  # Последние 500 символов
+                        "transcript_preview": accumulated_transcript[-500:] if accumulated_transcript else "",  # Последние 500 символов
+                        "assist_trigger": assist_trigger  # Add in-call assist trigger
                     }
                     message = json.dumps(message_data)
                     

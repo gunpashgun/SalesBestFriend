@@ -5,6 +5,7 @@ import ClientInfoSummary from './components/ClientInfoSummary'
 import CallChecklist from './components/CallChecklist'
 import DebugPanel from './components/DebugPanel'
 import LanguageSelector from './components/LanguageSelector'
+import { InCallAssist, Trigger } from './components/InCallAssist'
 
 interface CoachMessage {
   hint: string
@@ -14,6 +15,7 @@ interface CoachMessage {
   current_stage?: string
   checklist_progress?: Record<string, boolean>
   transcript_preview?: string
+  assist_trigger?: Trigger | null
 }
 
 function App() {
@@ -23,6 +25,7 @@ function App() {
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle')
   const [selectedLanguage, setSelectedLanguage] = useState('id')
   const [transcriptLines, setTranscriptLines] = useState<string[]>([])  // Debug: transcript lines
+  const [assistTrigger, setAssistTrigger] = useState<Trigger | null>(null)  // In-call assist trigger
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const ingestWsRef = useRef<WebSocket | null>(null)
@@ -154,6 +157,12 @@ function App() {
         
         setHint(data.hint || 'Нет подсказки')
         setProbability(data.prob || 0)
+        
+        // Update assist trigger if present
+        if (data.assist_trigger) {
+          console.log('🎯 In-Call Assist trigger:', data.assist_trigger)
+          setAssistTrigger(data.assist_trigger)
+        }
         
         // Debug: обновляем транскрипт
         if (data.transcript_preview) {
@@ -407,6 +416,9 @@ function App() {
 
   return (
     <div className="app">
+      {/* In-Call Assist - appears on top when triggered */}
+      <InCallAssist trigger={assistTrigger} />
+      
       <header className="header">
         <h1>🎯 Sales Best Friend</h1>
         <p className="subtitle">AI Voice Coach for Sales Calls</p>

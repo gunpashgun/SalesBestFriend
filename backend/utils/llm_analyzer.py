@@ -78,7 +78,7 @@ Consider:
     
     def analyze_client_sentiment(self, client_text: str, full_transcript_context: str) -> Dict:
         """
-        Analyze client sentiment, interests, objections, and needs using LLM
+        Analyze client sentiment, interests, objections, needs, and emotional state using LLM
         Returns comprehensive insights based on semantic understanding
         """
         # GUARD: Skip if text is too short (incomplete utterances like "Ternyata gini. Saiket")
@@ -94,6 +94,9 @@ Consider:
                 "buying_signals": [],
                 "reasoning": "Text too short for analysis"
             }
+        
+        print(f"\n🔍 ANALYZING CLIENT TEXT:")
+        print(f"   📝 Input ({len(client_text)} chars): {client_text[:100]}...")
         
         prompt = f"""You are analyzing a sales call to understand the client's interests, objections, needs, and emotional state.
 
@@ -131,6 +134,15 @@ Focus on MEANING and CONTEXT, not just keywords. Understand what the client trul
         try:
             response = self._call_llm(prompt, temperature=0.5)
             result = json.loads(response)
+            
+            # Log the detailed extraction
+            print(f"   ✅ LLM Analysis:")
+            print(f"      Emotion: {result.get('emotion')}")
+            print(f"      Interests: {result.get('interests')}")
+            print(f"      Objections: {result.get('objections')}")
+            print(f"      Needs: {result.get('needs')}")
+            print(f"      Engagement: {result.get('engagement_level')}")
+            print(f"      Reasoning: {result.get('reasoning')}")
             
             # Ensure all required fields
             if "engagement_level" not in result:
