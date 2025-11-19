@@ -1,27 +1,21 @@
-# Railway Dockerfile for Python backend (updated 2025-11-19)
+# Railway Dockerfile for SalesBestFriend Backend
 FROM python:3.11-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+# Install ffmpeg
+RUN apt-get update && \
+    apt-get install -y ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set working directory
-WORKDIR /app
+# Copy backend directory
+WORKDIR /app/backend
+COPY backend/ /app/backend/
 
-# Copy requirements first (for better caching)
-COPY requirements.txt backend/requirements.txt ./
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code
-COPY backend/ ./backend/
-
-# Change to backend directory
-WORKDIR /app/backend
-
-# Expose port (Railway will set $PORT)
+# Expose port
 EXPOSE 8000
 
-# Start command
-CMD ["sh", "-c", "uvicorn main_trial_class:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start uvicorn (already in /app/backend)
+CMD uvicorn main_trial_class:app --host 0.0.0.0 --port ${PORT:-8000}
 
