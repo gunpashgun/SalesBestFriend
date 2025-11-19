@@ -1,0 +1,9 @@
+[phases.setup]
+nixPkgs = ["python311", "ffmpeg", "pip"]
+
+[phases.install]
+cmds = ["cd backend && pip install -r requirements.txt"]
+
+[start]
+cmd = "cd backend && uvicorn main_trial_class:app --host 0.0.0.0 --port $PORT"
+

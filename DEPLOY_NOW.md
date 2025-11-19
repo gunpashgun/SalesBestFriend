@@ -12,15 +12,12 @@
 
 ### Шаг 2: Настроить backend
 
-Railway автоматически определит Python проект. Вам нужно:
+Railway автоматически определит Python проект и использует `nixpacks.toml` конфигурацию.
 
-1. После создания проекта, нажмите на сервис
-2. Перейдите в **Settings → Service Settings**
-3. Найдите **"Root Directory"** и установите: `backend`
-4. В **"Start Command"** установите:
-   ```
-   uvicorn main_trial_class:app --host 0.0.0.0 --port $PORT
-   ```
+✅ Никаких дополнительных настроек не нужно! Railway сам:
+- Установит Python 3.11 и FFmpeg
+- Установит зависимости из `backend/requirements.txt`
+- Запустит backend командой из `Procfile`
 
 ### Шаг 3: Добавить переменные окружения
 
