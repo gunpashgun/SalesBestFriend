@@ -1,21 +1,33 @@
 /**
- * Stage Checklist - Clean Design
+ * Stage Checklist - Notion-Inspired Design
  * 
- * Shows stages with timing and progress in a minimal, readable format
+ * Airy, soft, with generous whitespace and smooth interactions
  */
 
 .stage-checklist {
   background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s ease;
+}
+
+.stage-checklist:hover {
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.03),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
 }
 
 .checklist-title {
   font-size: 1.125rem;
   font-weight: 600;
-  margin: 0 0 1.5rem 0;
-  color: #111827;
+  margin: 0 0 1.75rem 0;
+  color: #37352f;
+  letter-spacing: -0.01em;
 }
 
 /* ===== STAGES CONTAINER ===== */
@@ -29,15 +41,24 @@
 /* ===== STAGE BLOCK ===== */
 
 .stage-block {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
   overflow: hidden;
-  transition: all 0.15s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.stage-block:hover {
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .stage-block.current {
-  border-color: #10b981;
-  box-shadow: 0 0 0 1px #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(240, 253, 244, 0.5);
+  box-shadow: 
+    0 0 0 1px rgba(16, 185, 129, 0.15),
+    0 2px 8px rgba(16, 185, 129, 0.08);
 }
 
 /* Stage Header */
@@ -46,18 +67,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  background: #fafafa;
+  padding: 1.125rem 1.5rem;
+  background: rgba(249, 250, 251, 0.5);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stage-header:hover {
-  background: #f5f5f5;
+  background: rgba(243, 244, 246, 0.8);
 }
 
 .stage-block.current .stage-header {
-  background: #f0fdf4;
+  background: rgba(240, 253, 244, 0.6);
 }
 
 .stage-header-left {
@@ -68,21 +89,23 @@
 }
 
 .stage-number {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e5e7eb;
+  background: rgba(229, 231, 235, 0.5);
   border-radius: 50%;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #9ca3af;
+  transition: all 0.2s ease;
 }
 
 .stage-block.current .stage-number {
-  background: #10b981;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
 }
 
 .stage-info {
@@ -95,12 +118,13 @@
   font-size: 0.9375rem;
   font-weight: 500;
   margin: 0;
-  color: #111827;
+  color: #37352f;
+  letter-spacing: -0.01em;
 }
 
 .stage-time {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: #9ca3af;
   font-variant-numeric: tabular-nums;
 }
 
@@ -166,24 +190,32 @@
 /* ===== STAGE ITEMS ===== */
 
 .stage-items {
-  padding: 0 1.25rem 1rem 1.25rem;
+  padding: 0.5rem 1.5rem 1.25rem 1.5rem;
   background: white;
 }
 
 .checklist-item {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.875rem 0;
-  border-bottom: 1px solid #f3f4f6;
+  gap: 0.875rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
 }
 
 .checklist-item:last-child {
   border-bottom: none;
 }
 
+.checklist-item:hover {
+  background: rgba(249, 250, 251, 0.5);
+  margin: 0 -0.75rem;
+  padding: 1rem 0.75rem;
+  border-radius: 6px;
+}
+
 .checklist-item.completed {
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 /* Checkbox */
@@ -203,17 +235,24 @@
 .checkbox-custom {
   width: 20px;
   height: 20px;
-  border: 2px solid #d1d5db;
-  border-radius: 4px;
+  border: 2px solid rgba(55, 53, 47, 0.15);
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+}
+
+.checkbox-custom:hover {
+  border-color: rgba(55, 53, 47, 0.25);
+  background: rgba(249, 250, 251, 0.8);
 }
 
 .checkbox-input:checked + .checkbox-custom {
-  background: #10b981;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border-color: #10b981;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2);
 }
 
 .checkmark {
@@ -241,8 +280,8 @@
 
 .item-text {
   font-size: 0.875rem;
-  line-height: 1.5;
-  color: #374151;
+  line-height: 1.6;
+  color: #37352f;
 }
 
 .item-evidence {
