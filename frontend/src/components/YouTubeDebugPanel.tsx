@@ -35,6 +35,9 @@ export default function YouTubeDebugPanel({ selectedLanguage, onClose }: YouTube
     setMessage('Downloading and transcribing video...')
 
     try {
+      console.log('🔍 Connecting to backend:', API_HTTP)
+      console.log('📤 Sending YouTube URL:', url)
+      
       const formData = new FormData()
       formData.append('url', url)
       formData.append('language', selectedLanguage)
@@ -44,7 +47,16 @@ export default function YouTubeDebugPanel({ selectedLanguage, onClose }: YouTube
         body: formData
       })
 
+      console.log('📡 Response status:', response.status, response.statusText)
+
+      // Check if response is OK
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Backend error (${response.status}): ${errorText.substring(0, 200)}`)
+      }
+
       const data = await response.json()
+      console.log('📦 Response data:', data)
 
       if (data.success) {
         setStatus('success')
@@ -65,9 +77,13 @@ export default function YouTubeDebugPanel({ selectedLanguage, onClose }: YouTube
         setMessage(`❌ Error: ${data.error}`)
       }
     } catch (err: any) {
-      console.error('YouTube processing error:', err)
+      console.error('❌ YouTube processing error:', err)
       setStatus('error')
-      setMessage(`❌ Error: ${err.message}`)
+      setMessage(
+        `❌ Error: ${err.message || 'Failed to connect'}\n\n` +
+        `Backend URL: ${API_HTTP}\n` +
+        `Is the backend running? Check console for details.`
+      )
     } finally {
       setIsProcessing(false)
     }
