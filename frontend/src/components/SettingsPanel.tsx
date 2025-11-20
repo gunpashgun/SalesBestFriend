@@ -160,11 +160,35 @@ export default function SettingsPanel({ onClose, selectedLanguage, onLanguageCha
 
   // ===== FIELD MANAGEMENT =====
   
-  const addField = () => {
+  // Get unique categories from fields
+  const getActiveCategories = () => {
+    const cats = new Set(fields.map(f => f.category))
+    return Array.from(cats)
+  }
+
+  const addCategory = () => {
+    // Show all available categories, add the first one that's not used yet
+    const usedCategories = getActiveCategories()
+    const availableCategory = CATEGORIES.find(cat => !usedCategories.includes(cat.id))
+    
+    if (availableCategory) {
+      const newField: ClientField = {
+        id: generateId(),
+        label: 'New Field',
+        category: availableCategory.id,
+        multiline: false
+      }
+      setFields([...fields, newField])
+    } else {
+      alert('All categories are already in use!')
+    }
+  }
+
+  const addFieldToCategory = (category: string) => {
     const newField: ClientField = {
       id: generateId(),
       label: 'New Field',
-      category: 'notes',
+      category: category,
       multiline: false
     }
     setFields([...fields, newField])
@@ -176,6 +200,12 @@ export default function SettingsPanel({ onClose, selectedLanguage, onLanguageCha
 
   const deleteField = (fieldId: string) => {
     setFields(fields.filter(f => f.id !== fieldId))
+  }
+
+  const deleteCategory = (category: string) => {
+    if (confirm(`Delete all fields in category "${CATEGORIES.find(c => c.id === category)?.label}"?`)) {
+      setFields(fields.filter(f => f.category !== category))
+    }
   }
 
   // ===== SAVE =====
@@ -517,64 +547,83 @@ export default function SettingsPanel({ onClose, selectedLanguage, onLanguageCha
                   <button className="btn-export" onClick={handleExportJSON}>
                     📤 Export JSON
                   </button>
-                  <button className="btn-add" onClick={addField}>
-                    ➕ Add Field
+                  <button className="btn-add" onClick={addCategory}>
+                    ➕ Add Category
                   </button>
                 </div>
               </div>
               
               <div className="editor-container">
-                {fields.map((field) => (
-                  <div key={field.id} className="field-editor">
-                    <input
-                      type="text"
-                      className="field-label-input"
-                      value={field.label}
-                      onChange={(e) => updateField(field.id, { label: e.target.value })}
-                      placeholder="Field label"
-                    />
-                    
-                    <select
-                      className="field-category-select"
-                      value={field.category}
-                      onChange={(e) => updateField(field.id, { category: e.target.value })}
-                    >
-                      {CATEGORIES.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.label}</option>
-                      ))}
-                    </select>
+                {getActiveCategories().map((category, catIndex) => {
+                  const categoryInfo = CATEGORIES.find(c => c.id === category)
+                  const categoryFields = fields.filter(f => f.category === category)
+                  
+                  return (
+                    <div key={category} className="stage-editor">
+                      <div className="stage-editor-header">
+                        <span className="stage-number">{catIndex + 1}</span>
+                        <div className="stage-info">
+                          <h4 className="stage-name">{categoryInfo?.label || category}</h4>
+                        </div>
+                        <button 
+                          className="btn-delete-stage" 
+                          onClick={() => deleteCategory(category)}
+                          title="Delete category"
+                        >
+                          🗑️
+                        </button>
+                      </div>
 
-                    <label className="field-multiline-toggle">
-                      <input
-                        type="checkbox"
-                        checked={field.multiline}
-                        onChange={(e) => updateField(field.id, { multiline: e.target.checked })}
-                      />
-                      <span>Multiline</span>
-                    </label>
+                      <div className="items-list">
+                        {categoryFields.map((field) => (
+                          <div key={field.id} className="item-editor">
+                            <select
+                              className="item-type-select"
+                              value={field.multiline ? 'textarea' : 'text'}
+                              onChange={(e) => updateField(field.id, { multiline: e.target.value === 'textarea' })}
+                            >
+                              <option value="text">Text</option>
+                              <option value="textarea">Textarea</option>
+                            </select>
+                            <input
+                              type="text"
+                              className="item-label-input"
+                              value={field.label}
+                              onChange={(e) => updateField(field.id, { label: e.target.value })}
+                              placeholder="Field label..."
+                            />
+                            <input
+                              type="text"
+                              className="field-hint-inline"
+                              value={field.hint || ''}
+                              onChange={(e) => updateField(field.id, { hint: e.target.value })}
+                              placeholder="Hint for AI (optional)"
+                            />
+                            <button
+                              className="btn-delete-item"
+                              onClick={() => deleteField(field.id)}
+                              title="Delete field"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
 
-                    <input
-                      type="text"
-                      className="field-hint-input"
-                      value={field.hint || ''}
-                      onChange={(e) => updateField(field.id, { hint: e.target.value })}
-                      placeholder="Hint for AI (optional)"
-                    />
-
-                    <button
-                      className="btn-delete-field"
-                      onClick={() => deleteField(field.id)}
-                      title="Delete field"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                ))}
+                      <button 
+                        className="btn-add-item" 
+                        onClick={() => addFieldToCategory(category)}
+                      >
+                        + Add Field
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
 
-              {fields.length === 0 && (
+              {getActiveCategories().length === 0 && (
                 <div className="empty-editor">
-                  <p>No fields yet. Click "Add Field" to get started!</p>
+                  <p>No categories yet. Click "Add Category" to get started!</p>
                 </div>
               )}
             </div>
