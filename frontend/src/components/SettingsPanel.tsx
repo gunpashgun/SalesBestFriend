@@ -9,7 +9,7 @@
  * Persists to localStorage, applies immediately
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './SettingsPanel.css'
 
 interface ChecklistItem {
