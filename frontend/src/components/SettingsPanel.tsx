@@ -222,16 +222,22 @@ export default function SettingsPanel({ onClose, selectedLanguage, onLanguageCha
       }))
     }))
 
-    const simplifiedFields = fields.map(field => ({
-      label: field.label,
-      category: field.category,
-      multiline: field.multiline,
-      ...(field.hint && { hint: field.hint })
-    }))
+    // Group fields by category for simpler JSON
+    const fieldsByCategory: Record<string, any[]> = {}
+    fields.forEach(field => {
+      if (!fieldsByCategory[field.category]) {
+        fieldsByCategory[field.category] = []
+      }
+      fieldsByCategory[field.category].push({
+        label: field.label,
+        type: field.multiline ? 'textarea' : 'text',
+        ...(field.hint && { hint: field.hint })
+      })
+    })
 
     const config = {
       call_structure: simplifiedStages,
-      client_fields: simplifiedFields
+      client_fields: fieldsByCategory
     }
     const json = JSON.stringify(config, null, 2)
     
@@ -260,8 +266,8 @@ export default function SettingsPanel({ onClose, selectedLanguage, onLanguageCha
       if (!config.call_structure || !Array.isArray(config.call_structure)) {
         throw new Error('Invalid structure: call_structure must be an array')
       }
-      if (!config.client_fields || !Array.isArray(config.client_fields)) {
-        throw new Error('Invalid structure: client_fields must be an array')
+      if (!config.client_fields) {
+        throw new Error('Invalid structure: client_fields is required')
       }
 
       // Convert simplified format to full format with auto-generated IDs
@@ -283,13 +289,34 @@ export default function SettingsPanel({ onClose, selectedLanguage, onLanguageCha
         }
       })
 
-      const fullFields: ClientField[] = config.client_fields.map((field: any) => ({
-        id: field.id || generateIdFromText(field.label),
-        label: field.label,
-        category: field.category || 'notes',
-        multiline: field.multiline !== undefined ? field.multiline : false,
-        hint: field.hint
-      }))
+      // Support both formats: grouped by category (new) or flat array (old)
+      let fullFields: ClientField[] = []
+      
+      if (Array.isArray(config.client_fields)) {
+        // Old format: flat array
+        fullFields = config.client_fields.map((field: any) => ({
+          id: field.id || generateIdFromText(field.label),
+          label: field.label,
+          category: field.category || 'notes',
+          multiline: field.multiline !== undefined ? field.multiline : (field.type === 'textarea'),
+          hint: field.hint
+        }))
+      } else {
+        // New format: grouped by category
+        Object.entries(config.client_fields).forEach(([category, categoryFields]: [string, any]) => {
+          if (Array.isArray(categoryFields)) {
+            categoryFields.forEach((field: any) => {
+              fullFields.push({
+                id: field.id || generateIdFromText(field.label),
+                label: field.label,
+                category: category,
+                multiline: field.type === 'textarea' || field.multiline === true,
+                hint: field.hint
+              })
+            })
+          }
+        })
+      }
 
       // Apply configuration
       setStages(fullStages)
