@@ -565,7 +565,9 @@ async def get_debug_log():
     """Get debug log of all AI decisions"""
     return {
         "log": debug_log[-100:],  # Last 100 entries
-        "total_entries": len(debug_log)
+        "total_entries": len(debug_log),
+        "is_recording": is_live_recording,
+        "message": "No logs yet - start recording to see AI decisions" if len(debug_log) == 0 else f"Showing last {min(100, len(debug_log))} of {len(debug_log)} entries"
     }
 
 
