@@ -162,12 +162,11 @@ function App_TrialClass() {
       }
 
       console.log('✅ Audio stream captured')
+      console.log(`   Audio tracks: ${audioTracks.length}`)
+      console.log(`   Video tracks: ${stream.getVideoTracks().length}`)
       
-      // Stop video tracks (we only need audio)
-      stream.getVideoTracks().forEach(track => {
-        track.stop()
-        stream.removeTrack(track)
-      })
+      // Keep video tracks alive (Chrome requirement for tab audio)
+      // If we stop video, Chrome closes the entire stream including audio!
       
       streamRef.current = stream
 
