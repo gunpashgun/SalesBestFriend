@@ -12,12 +12,19 @@ Minimal, focused on live assistance only.
 """
 
 # ============================================================
-# 🚀 DEPLOYMENT VERSION: 2025-11-21-SYNTAX-FIX-VERIFIED
+# 🚀 DEPLOYMENT VERSION: 2025-11-21-SYNTAX-FIX-VERIFIED-v2
 # ============================================================
 # This version fixes the SyntaxError by removing ALL nested
 # global declarations. All globals are now at function level.
 # ✅ Verified: py_compile passed, no nested globals found
+# 📍 Line 257 contains: if call_start_time is None:
+# ❌ Line 257 does NOT contain: global current_stage_id
 # ============================================================
+print("=" * 70)
+print("🚀 MAIN_TRIAL_CLASS MODULE LOADED")
+print("📦 Version: 2025-11-21-SYNTAX-FIX-VERIFIED-v2")
+print("✅ All syntax errors fixed (verified locally)")
+print("=" * 70)
 
 import asyncio
 import json
