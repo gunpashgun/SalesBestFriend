@@ -11,6 +11,14 @@ Focused on:
 Minimal, focused on live assistance only.
 """
 
+# ============================================================
+# 🚀 DEPLOYMENT VERSION: 2025-11-21-SYNTAX-FIX-VERIFIED
+# ============================================================
+# This version fixes the SyntaxError by removing ALL nested
+# global declarations. All globals are now at function level.
+# ✅ Verified: py_compile passed, no nested globals found
+# ============================================================
+
 import asyncio
 import json
 import time
