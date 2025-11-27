@@ -1,0 +1,10 @@
+# This file is used to provide cookies to yt-dlp for downloading private or age-restricted YouTube videos.
+# To use this feature, you need to export your browser's cookies into a Netscape format cookie file and paste the content here.
+#
+# How to export cookies:
+# 1. Install a browser extension that can export cookies in the Netscape format (e.g., "Get cookies.txt" for Chrome).
+# 2. Go to youtube.com and log in to your account.
+# 3. Click the extension's icon and export the cookies.
+# 4. Paste the content of the exported file here.
+#
+# IMPORTANT: This file contains sensitive information. Do not share it with anyone.
