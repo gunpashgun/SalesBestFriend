@@ -7,7 +7,7 @@ Handles incomplete WebM chunks from getDisplayMedia
 import subprocess
 import tempfile
 import os
-from typing import Optional
+from typing import Optional, List, Dict
 import io
 import wave
 from faster_whisper import WhisperModel
@@ -216,7 +216,7 @@ class RealtimeTranscriber:
             traceback.print_exc()
             raise
 
-    def transcribe_buffer(self, buffer_data: bytes, language: str = "id") -> str:
+    def transcribe_buffer(self, buffer_data: bytes, language: str = "id") -> List[Dict]:
         """
         Transcribe audio buffer directly
         
@@ -225,7 +225,7 @@ class RealtimeTranscriber:
             language: Language code (default: "id" for Bahasa Indonesia)
             
         Returns:
-            Transcribed text
+            A list of segment dictionaries with start, end, and text
         """
         temp_wav_path = None
         
@@ -298,16 +298,17 @@ class RealtimeTranscriber:
                 beam_size=5
             )
             
-            transcript_lines = []
+            result_segments = []
             for segment in segments:
-                text = segment.text.strip()
-                if text:
-                    transcript_lines.append(text)
+                result_segments.append({
+                    "start": segment.start,
+                    "end": segment.end,
+                    "text": segment.text.strip()
+                })
             
-            result = ' '.join(transcript_lines)
-            print(f"✅ Transcribed: {len(result)} chars - '{result[:100]}'")
+            print(f"✅ Transcribed: {len(result_segments)} segments")
             
-            return result
+            return result_segments
             
         except Exception as e:
             print(f"❌ Transcription error: {e}")
@@ -335,7 +336,7 @@ def get_transcriber() -> RealtimeTranscriber:
     return _transcriber
 
 
-def transcribe_audio_buffer(buffer_data: bytes, language: str = "id") -> str:
+def transcribe_audio_buffer(buffer_data: bytes, language: str = "id") -> List[Dict]:
     """
     Convenience function to transcribe audio buffer
     
@@ -344,7 +345,7 @@ def transcribe_audio_buffer(buffer_data: bytes, language: str = "id") -> str:
         language: Language code (default: "id" for Bahasa Indonesia)
         
     Returns:
-        Transcribed text
+        A list of segment dictionaries with start, end, and text
     """
     transcriber = get_transcriber()
     return transcriber.transcribe_buffer(buffer_data, language=language)

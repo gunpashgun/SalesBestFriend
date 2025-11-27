@@ -261,3 +261,42 @@
   }
 }
 
+/* Transcript Section */
+.transcript-section {
+  padding: 0 2.5rem 2rem 2.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.transcript-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #37352f;
+  margin: 1.5rem 0;
+}
+
+.transcript-content {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 1rem;
+  background: rgba(249, 250, 251, 0.5);
+}
+
+.transcript-content p {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #37352f;
+}
+
+.timestamp {
+  font-weight: 500;
+  color: #10b981;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+
+.timestamp:hover {
+  text-decoration: underline;
+}

@@ -51,9 +51,7 @@ class TrialClassAnalyzer:
     
     def check_checklist_item(
         self,
-        item_id: str,
-        item_content: str,
-        item_type: str,
+        item: Dict,
         conversation_text: str
     ) -> Tuple[bool, float, str, Dict]:
         """
@@ -76,6 +74,11 @@ class TrialClassAnalyzer:
             }
             return False, 0.0, "Insufficient conversation context", debug_info
         
+        item_id = item['id']
+        item_content = item['content']
+        item_type = item['type']
+        extended_description = item.get('extended_description', '')
+
         # Build prompt based on item type
         if item_type == "discuss":
             action_description = "asked about or discussed"
@@ -121,6 +124,8 @@ BAD examples:
 
 TASK: Check if this action was completed:
 Action: "{item_content}"
+
+ADDITIONAL CONTEXT: {extended_description}
 
 Recent conversation (Bahasa Indonesia):
 {conversation_text}
@@ -762,10 +767,8 @@ Return ONLY valid JSON:
         # TODO: Could optimize with a single LLM call for multiple items
         results = {}
         for item in items:
-            completed, confidence, evidence = self.check_checklist_item(
-                item['id'],
-                item['content'],
-                item['type'],
+            completed, confidence, evidence, debug_info = self.check_checklist_item(
+                item,
                 conversation_text
             )
             results[item['id']] = (completed, confidence, evidence)

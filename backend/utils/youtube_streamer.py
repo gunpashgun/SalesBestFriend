@@ -54,6 +54,27 @@ class YouTubeStreamer:
             ],
         }
         
+        # Add cookies from environment variable if available
+        # This is the new, secure way to handle authentication
+        cookies_content = os.getenv("YOUTUBE_COOKIES")
+        temp_cookie_file = None
+        if cookies_content:
+            try:
+                # yt-dlp needs a file path, so we create a temporary file
+                fd, temp_cookie_path = tempfile.mkstemp(text=True)
+                with os.fdopen(fd, 'w') as f:
+                    f.write(cookies_content)
+
+                ydl_opts['cookies'] = temp_cookie_path
+                temp_cookie_file = temp_cookie_path # Keep track to delete later
+                print("🍪 Using YouTube cookies from YOUTUBE_COOKIES env var.")
+            except Exception as e:
+                print(f"⚠️ Failed to create temporary cookie file: {e}")
+        else:
+            print("🚫 No YOUTUBE_COOKIES found. Proceeding without authentication.")
+
+        ydl_opts['user_agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+
         print(f"📥 Downloading YouTube video: {youtube_url}")
         
         try:
@@ -78,6 +99,14 @@ class YouTubeStreamer:
                 
         except Exception as e:
             raise Exception(f"Failed to download YouTube video: {str(e)}")
+        finally:
+            # Cleanup temporary cookie file
+            if temp_cookie_file and os.path.exists(temp_cookie_file):
+                try:
+                    os.remove(temp_cookie_file)
+                    print(f"🗑️ Cleaned up temporary cookie file.")
+                except Exception as e:
+                    print(f"⚠️ Failed to remove temp cookie file: {e}")
     
     async def stream_audio_chunks(
         self, 
