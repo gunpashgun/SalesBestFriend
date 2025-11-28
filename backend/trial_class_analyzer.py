@@ -51,9 +51,7 @@ class TrialClassAnalyzer:
     
     def check_checklist_item(
         self,
-        item_id: str,
-        item_content: str,
-        item_type: str,
+        item: Dict,
         conversation_text: str
     ) -> Tuple[bool, float, str, Dict]:
         """
@@ -76,6 +74,11 @@ class TrialClassAnalyzer:
             }
             return False, 0.0, "Insufficient conversation context", debug_info
         
+        item_id = item['id']
+        item_content = item['content']
+        item_type = item['type']
+        extended_description = item.get('extended_description', '')
+
         # Build prompt based on item type
         if item_type == "discuss":
             action_description = "asked about or discussed"
@@ -122,6 +125,8 @@ BAD examples:
 TASK: Check if this action was completed:
 Action: "{item_content}"
 
+ADDITIONAL CONTEXT: {extended_description}
+
 Recent conversation (Bahasa Indonesia):
 {conversation_text}
 
@@ -154,8 +159,16 @@ Return ONLY valid JSON:
         
         try:
             response = self._call_llm(prompt, temperature=0.2, max_tokens=200)
-            result = json.loads(response)
-            
+            try:
+                result = json.loads(response)
+            except json.JSONDecodeError:
+                print(f"   ⚠️ LLM returned invalid JSON for checklist item: {response}")
+                raise ValueError(f"LLM returned invalid JSON: {response}")
+
+            # Check if the response was an error from _call_llm
+            if "error" in result:
+                raise requests.exceptions.RequestException(result.get("details", "Unknown API error"))
+
             completed = result.get("completed", False)
             confidence = result.get("confidence", 0.0)
             evidence = result.get("evidence", "")
@@ -172,9 +185,9 @@ Return ONLY valid JSON:
             }
             
             # Guard 1: Only accept high confidence completions
-            if completed and confidence < 0.8:
+            if completed and confidence < 0.7: # Lowered from 0.8 to 0.7
                 debug_info["stage"] = "guard_1_low_confidence"
-                debug_info["guards_passed"].append("confidence < 0.8")
+                debug_info["guards_passed"].append("confidence < 0.7")
                 return False, confidence, "Confidence too low", debug_info
             
             # Guard 2: Evidence must exist and be substantial
@@ -297,51 +310,6 @@ Return ONLY valid JSON:
             print(f"      🚫 Rejected: Evidence too short ({word_count} words)")
             return False
         
-        # CRITICAL: Keyword-based semantic check
-        # Extract keywords from action to check evidence relevance
-        action_lower = item_content.lower()
-        
-        # Define keyword mappings for common actions
-        keyword_checks = [
-            # Age/Grade questions
-            {
-                "triggers": ["age", "umur", "usia", "grade", "kelas", "tahun"],
-                "required_in_evidence": ["umur", "usia", "tahun", "kelas", "grade", "sd", "smp", "sma", "tk"]
-            },
-            # Interests/Likes
-            {
-                "triggers": ["interest", "like", "suka", "hobi", "kesukaan", "favorite"],
-                "required_in_evidence": ["suka", "hobi", "main", "game", "olahraga", "favorit", "senang"]
-            },
-            # Concerns/Problems
-            {
-                "triggers": ["concern", "challenge", "masalah", "khawatir", "kesulitan", "tantangan"],
-                "required_in_evidence": ["khawatir", "masalah", "kesulitan", "concern", "tantangan", "susah", "kurang"]
-            },
-            # Goals
-            {
-                "triggers": ["goal", "tujuan", "harapan", "ingin", "mau"],
-                "required_in_evidence": ["tujuan", "harapan", "ingin", "mau", "supaya", "agar", "bisa", "goals"]
-            },
-            # Experience
-            {
-                "triggers": ["experience", "pengalaman", "pernah", "sudah"],
-                "required_in_evidence": ["pernah", "sudah", "pengalaman", "biasa", "sering", "belum"]
-            }
-        ]
-        
-        # Check if action matches any keyword pattern
-        for check in keyword_checks:
-            # If action contains trigger words
-            if any(trigger in action_lower for trigger in check["triggers"]):
-                # Evidence MUST contain at least one required word
-                has_required = any(word in evidence_lower for word in check["required_in_evidence"])
-                if not has_required:
-                    print(f"      🚫 Rejected: Evidence lacks semantic keywords for '{item_content[:50]}...'")
-                    print(f"         Evidence: '{evidence[:100]}...'")
-                    print(f"         Required one of: {check['required_in_evidence'][:5]}")
-                    return False
-        
         # Build type-specific instructions
         if item_type == "discuss":
             type_check = """
@@ -358,14 +326,13 @@ REJECT if evidence is:
         else:  # "say"
             type_check = """
 ACTION TYPE: SAY/EXPLAIN
-The evidence MUST show:
-1. The manager STATING or EXPLAINING information
-2. NOT asking a question, but GIVING information
+The evidence MUST show the manager STATING or EXPLAINING something.
+- For complex topics, this should be a clear explanation.
+- For simple courtesies (e.g., "Thank you"), the courtesy itself is sufficient evidence.
 
 REJECT if evidence is:
-- A question instead of statement
-- Just mentioning a topic without explaining
-- Promise to explain later ("nanti saya jelaskan")
+- A question instead of a statement (unless the action is a question).
+- A promise to do something later ("nanti saya jelaskan").
 """
         
         validation_prompt = f"""You are a STRICT evidence validator for a sales call checklist.
@@ -420,7 +387,17 @@ Return ONLY valid JSON:
         
         try:
             response = self._call_llm(validation_prompt, temperature=0.05, max_tokens=150)
-            result = json.loads(response)
+            try:
+                result = json.loads(response)
+            except json.JSONDecodeError:
+                print(f"   ⚠️ LLM returned invalid JSON for evidence validation: {response}")
+                return False
+
+            # Check if the response was an error from _call_llm
+            if "error" in result:
+                # If the API call fails, we can't validate, so be conservative and reject
+                return False
+
             is_valid = result.get("is_valid", False)
             explanation = result.get("explanation", "")
             
@@ -540,8 +517,16 @@ If no clear information found, return EMPTY object: {{}}
         
         try:
             response = self._call_llm(prompt, temperature=0.3, max_tokens=800)
-            result = json.loads(response)
-            
+            try:
+                result = json.loads(response)
+            except json.JSONDecodeError:
+                print(f"   ⚠️ LLM returned invalid JSON for client card: {response}")
+                raise ValueError(f"LLM returned invalid JSON: {response}")
+
+            # Check if the response was an error from _call_llm
+            if "error" in result:
+                raise requests.exceptions.RequestException(result.get("details", "Unknown API error"))
+
             # Filter out fields that already have values (don't overwrite unless significantly different)
             updates = {}
             for field_id, field_data in result.items():
@@ -727,7 +712,17 @@ Return ONLY valid JSON:
         
         try:
             response = self._call_llm(validation_prompt, temperature=0.05, max_tokens=150)
-            result = json.loads(response)
+            try:
+                result = json.loads(response)
+            except json.JSONDecodeError:
+                print(f"   ⚠️ LLM returned invalid JSON for client field validation: {response}")
+                return False
+
+            # Check if the response was an error from _call_llm
+            if "error" in result:
+                # If the API call fails, we can't validate, so be conservative and reject
+                return False
+
             is_valid = result.get("is_valid", False)
             explanation = result.get("explanation", "")
             
@@ -762,10 +757,8 @@ Return ONLY valid JSON:
         # TODO: Could optimize with a single LLM call for multiple items
         results = {}
         for item in items:
-            completed, confidence, evidence = self.check_checklist_item(
-                item['id'],
-                item['content'],
-                item['type'],
+            completed, confidence, evidence, debug_info = self.check_checklist_item(
+                item,
                 conversation_text
             )
             results[item['id']] = (completed, confidence, evidence)
@@ -842,8 +835,16 @@ Return ONLY valid JSON:
         
         try:
             response = self._call_llm(prompt, temperature=0.2, max_tokens=200)
-            result = json.loads(response)
-            
+            try:
+                result = json.loads(response)
+            except json.JSONDecodeError:
+                print(f"   ⚠️ LLM returned invalid JSON for stage detection: {response}")
+                raise ValueError(f"LLM returned invalid JSON: {response}")
+
+            # Check if the response was an error from _call_llm
+            if "error" in result:
+                raise requests.exceptions.RequestException(result.get("details", "Unknown API error"))
+
             stage_id = result.get("stage_id", "")
             confidence = result.get("confidence", 0.0)
             
@@ -894,15 +895,22 @@ Return ONLY valid JSON:
             "max_tokens": max_tokens
         }
         
-        response = requests.post(
-            self.api_url,
-            headers=headers,
-            json=payload,
-            timeout=30
-        )
-        
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.post(
+                self.api_url,
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            response.raise_for_status()
+            data = response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"   🚨 LLM API call failed: {e}")
+            # Return a JSON string that indicates an error
+            return json.dumps({
+                "error": "API call failed",
+                "details": str(e)
+            })
         
         content = data["choices"][0]["message"]["content"]
         

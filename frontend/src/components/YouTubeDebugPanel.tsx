@@ -13,11 +13,25 @@ interface YouTubeDebugPanelProps {
   onClose: () => void
 }
 
+interface TranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+}
+
 export default function YouTubeDebugPanel({ selectedLanguage, onClose }: YouTubeDebugPanelProps) {
   const [url, setUrl] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [transcriptSegments, setTranscriptSegments] = useState<TranscriptSegment[]>([])
+
+  const handleTimestampClick = (seconds: number) => {
+    if (!url) return;
+    const videoUrl = new URL(url);
+    videoUrl.searchParams.set('t', `${Math.floor(seconds)}s`);
+    window.open(videoUrl.toString(), '_blank');
+  };
 
   // Always use Railway backend in production (Vercel deployment)
   const isProduction = window.location.hostname !== 'localhost'
@@ -37,6 +51,7 @@ export default function YouTubeDebugPanel({ selectedLanguage, onClose }: YouTube
     setIsProcessing(true)
     setStatus('processing')
     setMessage('Downloading and transcribing video...')
+    setTranscriptSegments([])
 
     try {
       console.log('🔍 Connecting to backend:', API_HTTP)
@@ -71,6 +86,7 @@ export default function YouTubeDebugPanel({ selectedLanguage, onClose }: YouTube
           `Completed: ${data.itemsCompleted}/${data.totalItems} items\n` +
           `Client info: ${data.clientCardFields} fields filled`
         )
+        setTranscriptSegments(data.transcript_segments || [])
         
         // Clear URL after 2 seconds
         setTimeout(() => {
@@ -148,7 +164,32 @@ export default function YouTubeDebugPanel({ selectedLanguage, onClose }: YouTube
           Note: Processing may take 1-2 minutes depending on video length.
         </p>
       </div>
+
+      {transcriptSegments.length > 0 && (
+        <div className="transcript-section">
+          <h4>Full Transcript</h4>
+          <div className="transcript-content">
+            {transcriptSegments.map((segment, index) => (
+              <p key={index}>
+                <span
+                  className="timestamp"
+                  onClick={() => handleTimestampClick(segment.start)}
+                >
+                  [{formatTimestamp(segment.start)}]
+                </span>
+                {segment.text}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
+function formatTimestamp(seconds: number): string {
+  const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return h === '00' ? `${m}:${s}` : `${h}:${m}:${s}`;
+}
