@@ -6,7 +6,7 @@ Defines the expected flow of a trial class sales call with:
 - Stages
 - Timing per stage
 - Checklist items per stage
-- Semantic keywords for LLM guidance
+- Semantic keywords for LLM guidance (required + forbidden)
 
 This structure is used for:
 1. Real-time progress tracking
@@ -14,7 +14,7 @@ This structure is used for:
 3. Time-based stage detection
 4. Settings UI (editable by user)
 
-Version: 3.0 (Modified Option B+ with semantic_keywords)
+Version: 3.1 (with forbidden keywords)
 """
 
 from typing import List, Dict, TypedDict, Any
@@ -44,6 +44,11 @@ class CallStage(TypedDict):
     items: List[ChecklistItem]
 
 
+# Common forbidden keywords (promises, acknowledgments, fillers)
+COMMON_FORBIDDEN = ["nanti", "akan", "mungkin", "coba", "hmm", "ehh", "emm"]
+ACKNOWLEDGMENT_FORBIDDEN = ["oke", "ok", "baik", "ya", "iya", "yup", "siap"]
+
+
 DEFAULT_CALL_STRUCTURE: List[CallStage] = [
     {
         "id": "stage_greeting",
@@ -58,7 +63,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "The tutor must open warmly, greet both parent and child, and introduce themselves clearly. Look for a greeting ('hello', 'selamat pagi'), a self-introduction ('my name is…', 'nama saya…'), and a reference to Algonova. Simple acknowledgments like 'oke' or 'iya' are not sufficient.",
                 "semantic_keywords": {
                     "required": ["halo", "hello", "selamat", "nama saya", "my name", "saya", "algonova"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "akan", "sebentar", "tunggu"]  # Promises to greet later
                 }
             },
             {
@@ -68,7 +73,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "The goal is to ensure the tutor correctly identifies both the child and the parent. The AI should detect explicit confirmation questions or statements such as 'betul dengan Mama…?', 'ini dengan Bapak…?', or 'nama anaknya…?' This must reference both parties, not just one.",
                 "semantic_keywords": {
                     "required": ["nama", "betul", "anak", "child", "mama", "papa", "orang tua", "parent"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "tunggu"]  # Promises to confirm later
                 }
             },
             {
@@ -78,7 +83,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "The tutor must verify that the parent will accompany the child during the session. AI should look for phrases like 'apakah Mama/Papa mendampingi?', 'akan berada di sini?', or confirmation replies indicating parent presence.",
                 "semantic_keywords": {
                     "required": ["dampingi", "mendampingi", "temani", "orang tua", "mama", "papa", "parent"],
-                    "forbidden": []
+                    "forbidden": ["mungkin", "coba", "nanti"]  # Uncertain or delayed
                 }
             },
             {
@@ -88,7 +93,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "The tutor must clearly outline the stages of the trial class. Look for sequential markers such as 'pertama', 'kedua', 'selanjutnya', 'first we will…', 'then we will…', and explicit agenda description. A simple 'kita mulai ya' is not enough.",
                 "semantic_keywords": {
                     "required": ["agenda", "tahapan", "stages", "sesi", "session", "pertama", "kedua", "selanjutnya", "first", "then"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "sebentar lagi", "tunggu"]  # Incomplete explanation
                 }
             }
         ]
@@ -106,7 +111,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "The tutor must verify both age and school grade. AI should detect questions like 'umur berapa?', 'kelas berapa?', or answers such as '8 tahun', 'kelas 3 SD'. Mentioning only the child's name does not count.",
                 "semantic_keywords": {
                     "required": ["umur", "usia", "tahun", "kelas", "grade", "sd", "smp", "sma", "age", "years"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "sebentar"]  # Promises to ask later
                 }
             },
             {
@@ -116,7 +121,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "The tutor must ask about what the child likes. Look for explicit questions such as 'suka apa?', 'game favorit apa?', 'hobi apa?', or answers revealing interests like 'suka Roblox', 'hobi menggambar'.",
                 "semantic_keywords": {
                     "required": ["suka", "hobi", "hobby", "favorit", "game", "main", "senang"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "coba"]  # Promises to ask later
                 }
             },
             {
@@ -126,7 +131,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must understand how the child prefers to learn: visual, hands-on, guided steps, independent exploration, etc. AI should detect questions like 'lebih suka belajar bagaimana?', 'lebih nyaman dengan cara apa?'",
                 "semantic_keywords": {
                     "required": ["belajar", "cara", "preferensi", "comfortable", "suka belajar", "lebih suka"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "mungkin"]
                 }
             },
             {
@@ -136,7 +141,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must explore child's daily routine and other interests outside gaming, such as sports, reading, drawing, or extracurriculars. This helps build personalized recommendations.",
                 "semantic_keywords": {
                     "required": ["aktivitas", "harian", "hobi", "kegiatan", "rutinitas", "les", "ekskul"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "sebentar"]
                 }
             }
         ]
@@ -154,7 +159,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must explain how Algonova's approach differs from traditional school: project-based, creative, interactive, personalized pacing. Must be explicit comparison.",
                 "semantic_keywords": {
                     "required": ["beda", "perbedaan", "sekolah", "school", "algonova", "pendekatan", "project"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "akan", "mungkin"]  # Promises to explain later
                 }
             },
             {
@@ -164,7 +169,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must give a simple, child-friendly explanation of coding or design. AI should detect explanatory phrases like 'coding itu…', 'design itu…', 'is like…', not just asking questions.",
                 "semantic_keywords": {
                     "required": ["coding", "design", "buat", "membuat", "program", "code", "desain"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "mau", "akan"]  # Asking, not explaining
                 }
             },
             {
@@ -174,7 +179,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must help the child imagine themselves creating something: being a young game developer or animator. Look for imaginative prompts like 'bayangkan…', 'imagine if…'.",
                 "semantic_keywords": {
                     "required": ["bayangkan", "imajinasi", "imagine", "gamedev", "game developer", "animator"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "sebentar lagi"]  # Promises for later
                 }
             },
             {
@@ -184,7 +189,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must ask what the child wants to create: game, character, animation, world, etc. Evidence must include a direct question.",
                 "semantic_keywords": {
                     "required": ["buat apa", "ingin buat", "mau buat", "create", "make", "membuat"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "sebentar"]  # Promises to ask later
                 }
             }
         ]
@@ -202,7 +207,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must summarize: child's age, interests, preferences, strengths. A structured recap is required.",
                 "semantic_keywords": {
                     "required": ["ringkas", "summary", "jadi", "berarti", "profil", "anak"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "akan", "sebentar"]  # Incomplete summary
                 }
             },
             {
@@ -212,7 +217,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must summarize parent concerns and goals in one coherent statement.",
                 "semantic_keywords": {
                     "required": ["orang tua", "parent", "harapan", "goal", "tujuan", "ingin"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "mungkin"]
                 }
             },
             {
@@ -222,7 +227,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must recommend a course based on profiling: coding, design, gamedev, etc., and explain why it matches the child.",
                 "semantic_keywords": {
                     "required": ["rekomendasi", "course", "kelas", "cocok", "sesuai"],
-                    "forbidden": []
+                    "forbidden": ["mungkin", "coba", "nanti"]  # Uncertain recommendation
                 }
             }
         ]
@@ -240,7 +245,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must actively guide the child through tasks: giving instructions, hints, and steps.",
                 "semantic_keywords": {
                     "required": ["klik", "coba", "ikut", "ikuti", "step", "langkah"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "sebentar", "tunggu dulu"]  # Not actively guiding
                 }
             },
             {
@@ -250,7 +255,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must ask child to explain what they learned to reinforce understanding.",
                 "semantic_keywords": {
                     "required": ["belajar", "apa yang", "yang kamu pelajari", "learn"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "sebentar"]
                 }
             },
             {
@@ -260,7 +265,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must request parent's feedback and respond with empathy. AI should detect references to 'bagaimana menurut Mama/Papa…?'",
                 "semantic_keywords": {
                     "required": ["feedback", "pendapat", "menurut", "orang tua", "mama", "papa"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "sebentar"]
                 }
             }
         ]
@@ -278,7 +283,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must explicitly frame Algonova as an international school with global curriculum.",
                 "semantic_keywords": {
                     "required": ["algonova", "international", "school", "sekolah"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "mungkin"]
                 }
             },
             {
@@ -288,7 +293,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must show or mention real student achievements, projects, or success stories.",
                 "semantic_keywords": {
                     "required": ["prestasi", "achievement", "hasil karya", "project", "murid"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "mungkin"]
                 }
             },
             {
@@ -298,7 +303,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must explain progression: from basic to advanced levels, different courses, and long-term path.",
                 "semantic_keywords": {
                     "required": ["learning path", "kurikulum", "lanjutan", "course", "level"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "mungkin"]
                 }
             }
         ]
@@ -316,7 +321,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must explicitly link the parent's goals and the child's profile to the recommended class.",
                 "semantic_keywords": {
                     "required": ["kebutuhan", "need", "tujuan", "profil", "cocok"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "mungkin", "coba"]
                 }
             },
             {
@@ -326,7 +331,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must describe what the child achieved in practical session and how this shows their potential.",
                 "semantic_keywords": {
                     "required": ["hasil", "result", "praktik", "potensi", "bisa"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "mungkin"]
                 }
             }
         ]
@@ -344,7 +349,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must recommend the class type clearly, not just list options.",
                 "semantic_keywords": {
                     "required": ["private", "premium", "group", "rekomendasi", "kelas"],
-                    "forbidden": []
+                    "forbidden": ["mungkin", "coba", "terserah"]  # Uncertain or leaving it to client
                 }
             },
             {
@@ -354,7 +359,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must clarify and handle objections using empathetic responses.",
                 "semantic_keywords": {
                     "required": ["kendala", "keberatan", "masalah", "harga", "waktu", "khawatir"],
-                    "forbidden": []
+                    "forbidden": ["tidak tahu", "tidak bisa", "maaf"]  # Weak responses
                 }
             },
             {
@@ -364,7 +369,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must clearly explain refund policy, scheduling, and pricing.",
                 "semantic_keywords": {
                     "required": ["refund", "jadwal", "schedule", "harga", "price", "policy"],
-                    "forbidden": []
+                    "forbidden": ["tidak tahu", "mungkin", "nanti"]  # Unclear explanations
                 }
             }
         ]
@@ -382,7 +387,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "Tutor must end the call politely and clearly.",
                 "semantic_keywords": {
                     "required": ["terima kasih", "thank you", "sampai jumpa", "see you"],
-                    "forbidden": []
+                    "forbidden": ["nanti", "tunggu"]  # Incomplete closing
                 }
             },
             {
@@ -392,7 +397,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "If payment is done, tutor must warmly welcome and explain next steps.",
                 "semantic_keywords": {
                     "required": ["selamat", "welcome", "langkah berikutnya", "next step"],
-                    "forbidden": []
+                    "forbidden": ["mungkin", "nanti"]
                 }
             },
             {
@@ -402,7 +407,7 @@ DEFAULT_CALL_STRUCTURE: List[CallStage] = [
                 "extended_description": "If not purchased yet, the tutor must leave a positive, encouraging impression.",
                 "semantic_keywords": {
                     "required": ["tidak apa", "boleh nanti", "kapan saja", "positif"],
-                    "forbidden": []
+                    "forbidden": ["harus", "wajib"]  # Pressuring language
                 }
             }
         ]
