@@ -54,25 +54,98 @@ const CATEGORIES = [
   { id: 'notes', label: '📝 Notes' }
 ]
 
-// Default configurations
+// Default configurations (v3.1 - synced with backend)
 const DEFAULT_STAGES: CallStage[] = [
   {
-    id: 'greeting',
-    name: 'Greeting & Rapport',
-    time_budget_seconds: 120,
+    id: 'stage_greeting',
+    name: 'Greeting & Preparation',
+    time_budget_seconds: 180,
     items: [
-      { id: 'intro_self', type: 'ask', label: 'Introduce yourself & company' },
-      { id: 'check_time', type: 'ask', label: 'Check client\'s availability' },
-      { id: 'set_agenda', type: 'say', label: 'Set agenda for the call' }
+      { id: 'opening_greeting', type: 'say', label: 'Sapa dengan hangat dan perkenalkan diri dari Algonova' },
+      { id: 'confirm_child_parent', type: 'say', label: 'Konfirmasi nama anak dan orang tua' },
+      { id: 'confirm_companion', type: 'ask', label: 'Konfirmasi bahwa orang tua akan mendampingi anak' },
+      { id: 'explain_stages', type: 'say', label: 'Jelaskan tahapan dan agenda trial class' }
     ]
   },
   {
-    id: 'discovery',
-    name: 'Discovery & Needs',
+    id: 'stage_profiling',
+    name: 'Profiling',
+    time_budget_seconds: 420,
+    items: [
+      { id: 'profile_age', type: 'ask', label: 'Konfirmasi usia dan tingkat sekolah anak' },
+      { id: 'profile_interests', type: 'ask', label: 'Tanyakan minat anak (game, aktivitas, pelajaran)' },
+      { id: 'profile_learning_preferences', type: 'ask', label: 'Tanyakan preferensi belajar anak' },
+      { id: 'profile_hobbies_activities', type: 'ask', label: 'Tanyakan aktivitas harian dan hobi anak' }
+    ]
+  },
+  {
+    id: 'stage_real_points',
+    name: 'Real Points',
     time_budget_seconds: 300,
     items: [
-      { id: 'child_age', type: 'ask', label: 'Ask about child\'s age' },
-      { id: 'interests', type: 'ask', label: 'Explore child\'s interests' }
+      { id: 'explain_difference_from_school', type: 'say', label: 'Jelaskan perbedaan Algonova dengan sekolah' },
+      { id: 'explain_coding_design', type: 'say', label: 'Jelaskan secara sederhana apa itu coding atau design' },
+      { id: 'imagination_role', type: 'say', label: 'Ajak anak membayangkan menjadi gamedev/animator muda' },
+      { id: 'ask_what_to_create', type: 'ask', label: 'Tanyakan anak ingin membuat apa' }
+    ]
+  },
+  {
+    id: 'stage_profiling_summary',
+    name: 'Profiling Summary',
+    time_budget_seconds: 180,
+    items: [
+      { id: 'summary_child', type: 'say', label: 'Ringkas profil anak berdasarkan jawaban' },
+      { id: 'summary_parent', type: 'say', label: 'Ringkas sudut pandang dan harapan orang tua' },
+      { id: 'recommend_course', type: 'say', label: 'Rekomendasikan course yang paling sesuai' }
+    ]
+  },
+  {
+    id: 'stage_practical',
+    name: 'Practical Session',
+    time_budget_seconds: 1200,
+    items: [
+      { id: 'guide_tasks', type: 'say', label: 'Pandu guide anak dalam menyelesaikan tugas' },
+      { id: 'ask_what_learned', type: 'ask', label: 'Tanyakan apa yang anak pelajari' },
+      { id: 'ask_parent_feedback', type: 'ask', label: 'Tanyakan feedback dari orang tua' }
+    ]
+  },
+  {
+    id: 'stage_presentation',
+    name: 'Presentation',
+    time_budget_seconds: 420,
+    items: [
+      { id: 'introduce_school', type: 'say', label: 'Perkenalkan Algonova sebagai sekolah internasional' },
+      { id: 'share_achievements', type: 'say', label: 'Ceritakan prestasi dan hasil karya murid' },
+      { id: 'explain_learning_path', type: 'say', label: 'Jelaskan course lain dan learning path jangka panjang' }
+    ]
+  },
+  {
+    id: 'stage_bridging',
+    name: 'Bridging',
+    time_budget_seconds: 300,
+    items: [
+      { id: 'bridge_needs', type: 'say', label: 'Hubungkan hasil profiling dengan kebutuhan anak' },
+      { id: 'bridge_results', type: 'say', label: 'Hubungkan hasil sesi praktik dengan potensi anak' }
+    ]
+  },
+  {
+    id: 'stage_negotiation',
+    name: 'Negotiation',
+    time_budget_seconds: 600,
+    items: [
+      { id: 'recommend_class_type', type: 'say', label: 'Rekomendasikan tipe kelas (Private / Premium / Group)' },
+      { id: 'handle_objections', type: 'ask', label: 'Tanyakan keberatan dan jawab dengan empati' },
+      { id: 'clarify_policies', type: 'say', label: 'Jelaskan refund, jadwal, dan harga dengan jelas' }
+    ]
+  },
+  {
+    id: 'stage_closure',
+    name: 'Closure',
+    time_budget_seconds: 300,
+    items: [
+      { id: 'close_call', type: 'say', label: 'Akhiri panggilan dengan profesional' },
+      { id: 'closure_positive_if_paid', type: 'say', label: 'Jika sudah bayar, sambut dengan hangat dan beri arahan selanjutnya' },
+      { id: 'closure_if_not_paid', type: 'say', label: 'Jika belum bayar, tetap tinggalkan kesan positif' }
     ]
   }
 ]
