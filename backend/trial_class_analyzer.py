@@ -58,9 +58,7 @@ class TrialClassAnalyzer:
         Check if a checklist item has been completed
         
         Args:
-            item_id: Item identifier
-            item_content: What should be discussed/said
-            item_type: "discuss" or "say"
+            item: Item dict with id, content, type, extended_description, semantic_keywords
             conversation_text: Recent conversation (Indonesian)
             
         Returns:
@@ -78,6 +76,22 @@ class TrialClassAnalyzer:
         item_content = item['content']
         item_type = item['type']
         extended_description = item.get('extended_description', '')
+        semantic_keywords = item.get('semantic_keywords', {})
+        
+        # Guard 0: Pre-filtering with semantic keywords (if available)
+        if semantic_keywords:
+            prefilter_pass, prefilter_debug = self._prefilter_with_keywords(
+                conversation_text=conversation_text,
+                keywords=semantic_keywords
+            )
+            
+            if not prefilter_pass:
+                debug_info = {
+                    "stage": "guard_0_prefilter_failed",
+                    "context_length": len(conversation_text.strip()),
+                    "keywords_debug": prefilter_debug
+                }
+                return False, 0.0, "Pre-filter: Required keywords not found", debug_info
 
         # Build prompt based on item type
         if item_type == "discuss":
@@ -226,6 +240,57 @@ Return ONLY valid JSON:
                 "error": str(e)
             }
             return False, 0.0, str(e), debug_info
+    
+    def _prefilter_with_keywords(
+        self,
+        conversation_text: str,
+        keywords: Dict[str, List[str]]
+    ) -> Tuple[bool, Dict]:
+        """
+        Pre-filter conversation with semantic keywords before LLM call
+        This reduces false positives and saves LLM costs
+        
+        Args:
+            conversation_text: The conversation to check
+            keywords: Dict with 'required' and 'forbidden' keyword lists
+            
+        Returns:
+            (pass: bool, debug_info: dict)
+        """
+        conversation_lower = conversation_text.lower()
+        
+        required_keywords = keywords.get('required', [])
+        forbidden_keywords = keywords.get('forbidden', [])
+        
+        debug_info = {
+            "required_keywords": required_keywords,
+            "forbidden_keywords": forbidden_keywords,
+            "found_required": [],
+            "found_forbidden": []
+        }
+        
+        # Check required keywords (at least ONE must be present)
+        if required_keywords:
+            found_any_required = False
+            for keyword in required_keywords:
+                if keyword.lower() in conversation_lower:
+                    found_any_required = True
+                    debug_info["found_required"].append(keyword)
+            
+            if not found_any_required:
+                print(f"      🚫 Pre-filter FAILED: No required keywords found (need one of: {required_keywords[:5]}...)")
+                return False, debug_info
+        
+        # Check forbidden keywords (NONE should be present)
+        if forbidden_keywords:
+            for keyword in forbidden_keywords:
+                if keyword.lower() in conversation_lower:
+                    debug_info["found_forbidden"].append(keyword)
+                    print(f"      🚫 Pre-filter FAILED: Found forbidden keyword '{keyword}'")
+                    return False, debug_info
+        
+        print(f"      ✅ Pre-filter PASSED: Found required keywords {debug_info['found_required'][:3]}")
+        return True, debug_info
     
     def _validate_evidence_relevance(
         self,
