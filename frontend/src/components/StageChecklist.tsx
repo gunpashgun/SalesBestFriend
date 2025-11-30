@@ -18,6 +18,11 @@ interface ChecklistItem {
   completed: boolean
   evidence: string
   confidence?: number
+  extended_description?: string  // Optional: detailed description for LLM
+  semantic_keywords?: {  // Optional: for backend use
+    required?: string[]
+    forbidden?: string[]
+  }
 }
 
 interface Stage {
