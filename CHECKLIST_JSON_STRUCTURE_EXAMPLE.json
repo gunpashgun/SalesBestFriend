@@ -1,0 +1,429 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "description": "Modified Option B+ Structure with semantic_keywords",
+    "benefits": [
+      "90-95% accuracy (vs 85-90% without keywords)",
+      "30-40% fewer unnecessary LLM calls via pre-filtering",
+      "Item-specific keyword tuning",
+      "Only +33% token cost vs full Option C (+100%)"
+    ]
+  },
+
+  "call_structure": [
+    {
+      "id": "stage_greeting",
+      "name": "Greetings & Get Ready Before Trial Class",
+      "startOffsetSeconds": 0,
+      "durationSeconds": 180,
+      "items": [
+        {
+          "id": "greet_client",
+          "type": "say",
+          "content": "Greet the client warmly and introduce yourself",
+          
+          "extended_description": "Ensure tutor starts with professional demeanor. Look for: (1) Warm greeting in English or Indonesian ('Hello', 'Good morning', 'Selamat pagi'), (2) Self-introduction with name ('My name is...', 'Saya Miss/Mr [Name]'), (3) Company mention ('Algonova', 'International IT School'). Example: 'Good morning! I'm Miss Sarah from Algonova.' A simple acknowledgment like 'okay' or 'yes' is NOT sufficient.",
+          
+          "semantic_keywords": {
+            "required": [
+              "hello",
+              "good morning",
+              "selamat",
+              "halo",
+              "nama saya",
+              "my name",
+              "saya",
+              "miss",
+              "mr",
+              "algonova"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "confirm_names",
+          "type": "say",
+          "content": "Opening with English & confirm child and parent names",
+          
+          "extended_description": "Goal is to confirm identities and establish international school image. Must include: (1) English greeting, (2) Name confirmation for both child AND parent. Look for phrases like 'confirm name', 'your name is', 'betul dengan [name]', 'I'm here with [Parent] and [Child]'. Generic greeting without name confirmation is NOT complete.",
+          
+          "semantic_keywords": {
+            "required": [
+              "nama",
+              "name",
+              "betul",
+              "confirm",
+              "parent",
+              "mama",
+              "papa",
+              "anak",
+              "child"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "build_rapport",
+          "type": "say",
+          "content": "Build rapport with age-appropriate greeting",
+          
+          "extended_description": "Tutor must engage child with friendly question appropriate for age. For 5-7yo: ask about readiness to play/learn. For 8-12yo: ask how they are doing. For 13-17yo: ask if they know what they'll learn. Must be a QUESTION that invites response, not just 'hello'. Example: 'Are you excited to learn with me today?'",
+          
+          "semantic_keywords": {
+            "required": [
+              "siap",
+              "ready",
+              "kabar",
+              "how are you",
+              "gimana",
+              "excited",
+              "senang",
+              "mau",
+              "udah"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "confirm_readiness",
+          "type": "say",
+          "content": "Confirm client readiness (child and parent together)",
+          
+          "extended_description": "Ensure both child and parent are properly set up before starting. Check: (1) Parent is present and will stay, (2) Both visible on camera ('satu frame'), (3) Audio/video working. Must explicitly ask or confirm these points. Starting lesson without confirming setup is NOT complete.",
+          
+          "semantic_keywords": {
+            "required": [
+              "siap",
+              "ready",
+              "didampingi",
+              "parent",
+              "mama",
+              "papa",
+              "frame",
+              "video",
+              "audio",
+              "terlihat",
+              "dengar"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "handle_technical",
+          "type": "say",
+          "content": "Handle technical issues if any",
+          
+          "extended_description": "If technical problems arise (audio off, video off, connection issues), tutor must proactively address them. Look for: troubleshooting language ('kendala', 'masalah', 'tidak terdengar', 'video tidak aktif'), instructions to fix ('bisa klik mic', 'nyalakan audio'), or offering dual device solution. If NO technical issues, this can remain unchecked.",
+          
+          "semantic_keywords": {
+            "required": [
+              "kendala",
+              "masalah",
+              "technical",
+              "audio",
+              "video",
+              "suara",
+              "terdengar",
+              "mic",
+              "kamera",
+              "connection",
+              "internet"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "explain_agenda",
+          "type": "say",
+          "content": "Explain trial class agenda and stages",
+          
+          "extended_description": "Clearly outline what will happen during trial class. Must mention multiple stages/sections (not just next activity). Look for: sequencing words ('pertama', 'kedua', 'first', 'then', 'finally'), mention of different activities (introduction, main session, discussion), or explicit agenda explanation. Saying just 'let's start' is NOT sufficient.",
+          
+          "semantic_keywords": {
+            "required": [
+              "agenda",
+              "tahapan",
+              "stages",
+              "sesi",
+              "session",
+              "pertama",
+              "first",
+              "kedua",
+              "second",
+              "selanjutnya",
+              "then",
+              "finally"
+            ],
+            "forbidden": []
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "stage_profiling",
+      "name": "Profiling & Discovery",
+      "startOffsetSeconds": 180,
+      "durationSeconds": 420,
+      "items": [
+        {
+          "id": "confirm_age_grade",
+          "type": "discuss",
+          "content": "Confirm child's age and grade level",
+          
+          "extended_description": "Verify age and grade from registration data. Must include QUESTION about age/grade ('berapa tahun?', 'kelas berapa?') OR clear ANSWER that proves question was asked ('8 tahun', 'kelas 3 SD'). Simply mentioning child's name without age discussion is NOT sufficient.",
+          
+          "semantic_keywords": {
+            "required": [
+              "umur",
+              "usia",
+              "tahun",
+              "years",
+              "age",
+              "kelas",
+              "grade",
+              "sd",
+              "smp",
+              "sma",
+              "sekolah",
+              "school"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "ask_interests",
+          "type": "discuss",
+          "content": "Discover what child likes (games, activities, subjects)",
+          
+          "extended_description": "Learn about child's interests and hobbies. Must include QUESTION about what they like ('suka apa?', 'hobby?', 'game favorit?') OR clear ANSWER revealing interests ('suka main Roblox', 'hobby menggambar'). Generic conversation without interest discovery is NOT complete.",
+          
+          "semantic_keywords": {
+            "required": [
+              "suka",
+              "like",
+              "hobby",
+              "hobi",
+              "favorit",
+              "favorite",
+              "main",
+              "play",
+              "game",
+              "olahraga",
+              "sport",
+              "senang"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "identify_source",
+          "type": "discuss",
+          "content": "Confirm registration source and what attracted them",
+          
+          "extended_description": "Understand how they found Algonova and why they registered. Must include: (1) QUESTION or confirmation about source ('daftar dari mana?', 'lihat iklan di?'), (2) What attracted them from ad. Should mention specific platform (Facebook, Instagram, Google) if applicable.",
+          
+          "semantic_keywords": {
+            "required": [
+              "daftar",
+              "register",
+              "iklan",
+              "ad",
+              "advertisement",
+              "facebook",
+              "instagram",
+              "google",
+              "lihat",
+              "saw",
+              "tertarik",
+              "interested"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "identify_goals",
+          "type": "discuss",
+          "content": "Understand parent's goals and expectations",
+          
+          "extended_description": "Discover what parent wants child to achieve. Must include QUESTION about goals/hopes ('tujuan?', 'harapan?', 'ingin anak bisa apa?') OR clear ANSWER stating goals ('ingin anak bisa coding', 'harapan anak lebih kreatif'). Discussion about current problems only, without goals, is NOT complete.",
+          
+          "semantic_keywords": {
+            "required": [
+              "tujuan",
+              "goal",
+              "harapan",
+              "expectation",
+              "ingin",
+              "want",
+              "mau",
+              "wish",
+              "supaya",
+              "agar",
+              "bisa",
+              "can"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "identify_concerns",
+          "type": "discuss",
+          "content": "Identify parent concerns or challenges",
+          
+          "extended_description": "Uncover pain points or worries about child's learning. Must include QUESTION about concerns ('ada kekhawatiran?', 'kendala apa?') OR clear ANSWER expressing concern ('khawatir anak kurang fokus', 'kesulitan di matematika'). Generic conversation without identifying specific concern is NOT complete.",
+          
+          "semantic_keywords": {
+            "required": [
+              "khawatir",
+              "worry",
+              "concern",
+              "masalah",
+              "problem",
+              "kendala",
+              "challenge",
+              "kesulitan",
+              "difficulty",
+              "susah",
+              "kurang"
+            ],
+            "forbidden": []
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "stage_trial_intro",
+      "name": "Trial Class Introduction",
+      "startOffsetSeconds": 600,
+      "durationSeconds": 180,
+      "items": [
+        {
+          "id": "explain_platform",
+          "type": "say",
+          "content": "Explain how the learning platform works",
+          
+          "extended_description": "Tutor must EXPLAIN (not ask about) platform features. Look for: description of interface, how it works, interactive elements, game-like approach. Must be EXPLANATORY statements ('Platform kami seperti...', 'The way it works is...'). A question like 'Mau tau platform kami?' is NOT sufficient - must actually explain.",
+          
+          "semantic_keywords": {
+            "required": [
+              "platform",
+              "sistem",
+              "system",
+              "cara kerja",
+              "how it works",
+              "interface",
+              "belajar",
+              "learning",
+              "interaktif",
+              "interactive",
+              "fitur",
+              "feature"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "show_curriculum",
+          "type": "say",
+          "content": "Show curriculum tailored to child's level",
+          
+          "extended_description": "Present curriculum/learning path suitable for child. Must include: (1) Mention of curriculum ('kurikulum', 'learning path'), (2) Reference to child's level/age, (3) What topics will be covered. Generic mention without showing actual curriculum structure is NOT complete.",
+          
+          "semantic_keywords": {
+            "required": [
+              "kurikulum",
+              "curriculum",
+              "learning path",
+              "materi",
+              "material",
+              "topik",
+              "topic",
+              "level",
+              "tingkat",
+              "sesuai",
+              "suited"
+            ],
+            "forbidden": []
+          }
+        },
+
+        {
+          "id": "set_expectations",
+          "type": "say",
+          "content": "Set expectations for trial class",
+          
+          "extended_description": "Explain what will happen during trial and what child will do. Must include: activities child will try, duration mention, or what they'll learn/practice. Must be forward-looking ('kita akan...', 'we will...'). Just explaining past activities is NOT sufficient.",
+          
+          "semantic_keywords": {
+            "required": [
+              "akan",
+              "will",
+              "kita",
+              "we",
+              "nanti",
+              "later",
+              "coba",
+              "try",
+              "praktik",
+              "practice",
+              "belajar",
+              "learn",
+              "aktivitas",
+              "activity"
+            ],
+            "forbidden": []
+          }
+        }
+      ]
+    }
+  ],
+
+  "implementation_notes": {
+    "how_to_use": "Add semantic_keywords field to each checklist item in your call_structure_config.py",
+    
+    "required_keywords": {
+      "purpose": "Words that MUST appear in conversation for item to be considered",
+      "when_to_use": "Use 5-10 most important words that indicate the action was done",
+      "example": "For 'ask child age': required = ['umur', 'tahun', 'usia', 'kelas', 'age', 'years']"
+    },
+    
+    "forbidden_keywords": {
+      "purpose": "Keep empty [] - use existing hard-coded filters in trial_class_analyzer.py",
+      "reason": "Forbidden patterns ('oke', 'baik', 'ya') are already handled globally in validation logic",
+      "dont_repeat": "Avoid duplication - one source of truth for forbidden phrases"
+    },
+    
+    "pre_filtering_logic": "Before calling LLM, check if ANY required keyword exists in recent transcript. If no keywords found, skip LLM call (saves 1-2s and $0.00006 per item).",
+    
+    "keyword_selection_tips": [
+      "Include both Indonesian and English variants",
+      "Include synonyms (e.g., 'umur' + 'usia' for age)",
+      "Include common misspellings if relevant",
+      "Include abbreviations (e.g., 'sd', 'smp' for school grades)",
+      "For 'discuss' type: include question words + answer words",
+      "For 'say' type: include explanation/statement words",
+      "Aim for 5-10 keywords per item"
+    ],
+    
+    "migration_strategy": {
+      "phase_1": "Add semantic_keywords to 5-10 most important items",
+      "phase_2": "Implement pre-filtering in trial_class_analyzer.py",
+      "phase_3": "Monitor false negatives (items missed due to keyword check)",
+      "phase_4": "Tune keywords based on real data",
+      "phase_5": "Expand to all items"
+    }
+  }
+}
+
