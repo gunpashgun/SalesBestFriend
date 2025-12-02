@@ -262,14 +262,16 @@ async def websocket_ingest(websocket: WebSocket):
                         
                         # Transcribe
                         loop = asyncio.get_event_loop()
-                        transcript = await loop.run_in_executor(
+                        segments = await loop.run_in_executor(
                             None,
                             transcribe_audio_buffer,
                             buffer_data,
                             transcription_language
                         )
                         
-                        if transcript:
+                        if segments:
+                            # Extract text from segments
+                            transcript = " ".join([seg['text'] for seg in segments])
                             print(f"📝 Transcript ({len(transcript)} chars):")
                             print(f"   {transcript[:200]}...")
                             
