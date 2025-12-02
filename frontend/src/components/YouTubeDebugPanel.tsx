@@ -60,6 +60,7 @@ export default function YouTubeDebugPanel({ selectedLanguage, onClose }: YouTube
       const formData = new FormData()
       formData.append('url', url)
       formData.append('language', selectedLanguage)
+      formData.append('real_time', 'false') // Fast processing mode (no delays)
 
       const response = await fetch(`${API_HTTP}/api/process-youtube`, {
         method: 'POST',

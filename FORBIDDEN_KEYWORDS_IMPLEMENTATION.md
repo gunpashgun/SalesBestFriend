@@ -423,3 +423,5 @@ If English conversations appear, add:
 **Author:** AI Assistant (Cursor IDE)  
 **Project:** SalesBestFriend - Trial Class Call Analyzer
 
+
+

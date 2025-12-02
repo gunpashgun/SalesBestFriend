@@ -689,15 +689,17 @@ async def process_transcript(transcript: str = Form(...), language: str = Form("
 
 
 @app.post("/api/process-youtube")
-async def process_youtube(url: str = Form(...), language: str = Form("id"), real_time: bool = Form(True)):
+async def process_youtube(url: str = Form(...), language: str = Form("id"), real_time: bool = Form(False)):
     """
-    Process YouTube video for debugging (STREAMING MODE)
-    Simulates real-time call by streaming audio chunks like live recording
+    Process YouTube video for debugging (FAST MODE)
+    Processes audio as fast as possible without simulating real-time delays
     
     Args:
         url: YouTube video URL
         language: Transcription language (default: "id")
-        real_time: If True, simulate real-time playback with delays (default: True)
+        real_time: If True, simulate real-time playback with delays (default: False for speed)
+    
+    Note: Real-time mode disabled by default to avoid Railway 15min timeout on long videos
     """
     global accumulated_transcript, call_start_time, transcription_language
     global checklist_progress, checklist_evidence, client_card_data

@@ -373,3 +373,5 @@ Move hard-coded filters to JSON:
 **Author:** AI Assistant (Cursor IDE)  
 **Project:** SalesBestFriend - Trial Class Call Analyzer
 
+
+
