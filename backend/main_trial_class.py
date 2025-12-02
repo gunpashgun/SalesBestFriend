@@ -478,15 +478,15 @@ async def websocket_ingest(websocket: WebSocket):
                         coach_connections.difference_update(disconnected)
                         
                         print(f"✅ Update sent to {len(coach_connections)} clients\n")
+                        
+                        # Clear buffer
+                        audio_buffer.clear()
                     
-                    # Clear buffer
-                    audio_buffer.clear()
-                
-                except Exception as e:
-                    print(f"❌ Analysis error: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    audio_buffer.clear()
+                    except Exception as e:
+                        print(f"❌ Analysis error: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        audio_buffer.clear()
     
     except WebSocketDisconnect:
         print("🎤 /ingest disconnected")
